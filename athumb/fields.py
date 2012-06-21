@@ -64,17 +64,17 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
 
         # Slap the new thumbnail filename on the end of the old URL, in place
         # of the orignal image's filename.
-        if params:
-            new_url = "%s/%s?%s" % (url_minus_filename,
-                                    os.path.basename(new_filename),
-                                    #settings.MEDIA_CACHE_BUSTER,
-                                    params)
-        else:
-            new_url = "%s/%s" % (url_minus_filename,
-                                 os.path.basename(new_filename),
-                                 #settings.MEDIA_CACHE_BUSTER
-                                 )
-
+        # if params:
+        #     new_url = "%s/%s?%s" % (url_minus_filename,
+        #                             os.path.basename(new_filename),
+        #                             #settings.MEDIA_CACHE_BUSTER,
+        #                             params)
+        # else:
+        #     new_url = "%s/%s" % (url_minus_filename,
+        #                          os.path.basename(new_filename),
+        #                          #settings.MEDIA_CACHE_BUSTER
+        #                          )
+        new_url = self.url
         if ssl_mode:
             new_url = new_url.replace('http://', 'https://')
         
