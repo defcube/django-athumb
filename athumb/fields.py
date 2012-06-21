@@ -9,7 +9,7 @@ from django.db.models import ImageField
 from django.db.models.fields.files import ImageFieldFile
 from django.conf import settings
 from django.core.cache import cache
-
+from photo_videos.storage import get_upload_storage
 from manipulations import sorl_scale_and_crop
 from validators import ImageUploadExtensionValidator
 
@@ -52,10 +52,6 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
 
         # Split URL from GET attribs.
         url_get_split = self.url.rsplit('?', 1)
-        try:
-            params = url_get_split[1]
-        except IndexError:
-            params = ""
         
         # Just the URL string (no GET attribs).
         url_str = url_get_split[0]
@@ -64,20 +60,13 @@ class ImageWithThumbsFieldFile(ImageFieldFile):
 
         # Slap the new thumbnail filename on the end of the old URL, in place
         # of the orignal image's filename.
-        # if params:
-        #     new_url = "%s/%s?%s" % (url_minus_filename,
-        #                             os.path.basename(new_filename),
-        #                             #settings.MEDIA_CACHE_BUSTER,
-        #                             params)
-        # else:
-        #     new_url = "%s/%s" % (url_minus_filename,
-        #                          os.path.basename(new_filename),
-        #                          #settings.MEDIA_CACHE_BUSTER
-        #                          )
-        new_url = self.url
-        if ssl_mode:
-            new_url = new_url.replace('http://', 'https://')
-        
+        new_url = "%s/%s" % (url_minus_filename,
+                             os.path.basename(new_filename))
+
+        if new_url.startswith(settings.S3_BUCKET_URL):
+            storage = get_upload_storage(delayed=True).remote
+            new_url = storage.url(new_url.replace(settings.S3_BUCKET_URL, ""))
+
         # Cache this so we don't have to hit the storage backend for a while.
         cache.set(cache_key, new_url, THUMBNAIL_URL_CACHE_TIME)
         return new_url
